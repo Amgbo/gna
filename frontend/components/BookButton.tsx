@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import RoomBookingModal from "./RoomBookingModal";
+import { Button } from "./ui/Button";
 
 interface Room {
   id: string;
@@ -24,13 +25,13 @@ export default function BookButton({ roomId, room, hostelId, hostelName }: BookB
 
   return (
     <>
-      <button
+      <Button
+        variant="primary"
         onClick={() => setIsModalOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
+        rightIcon={<ArrowRight className="h-4 w-4" />}
       >
-        Book now
-        <ArrowRight className="h-4 w-4" />
-      </button>
+        Book Now
+      </Button>
 
       <RoomBookingModal
         isOpen={isModalOpen}

@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { Card, CardContent } from "../../components/ui/Card";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -43,5 +45,19 @@ export default function DashboardPage() {
     routeByRole();
   }, [router]);
 
-  return <div className="soft-card rounded-[28px] p-8 text-slate-600">Loading dashboard...</div>;
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <Card variant="elevated" padding="lg">
+        <CardContent className="flex flex-col items-center gap-4 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div>
+            <p className="font-medium text-foreground">Loading Dashboard</p>
+            <p className="text-sm text-muted-foreground">
+              Redirecting you to the right place...
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

@@ -1,20 +1,26 @@
 import type { Hostel } from "../../types/hostel";
+import { Card, CardContent } from "../ui/Card";
+import { Badge } from "../ui/Badge";
 
 export function HostelAboutCard({ hostel }: { hostel: Hostel }) {
   const amenities = Array.isArray(hostel.amenities) ? hostel.amenities : [];
 
   return (
-    <div className="soft-card rounded-[28px] p-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">About</p>
-      <p className="mt-3 text-sm leading-7 text-slate-600">{hostel.description}</p>
-      <div className="mt-5 flex flex-wrap gap-2">
-        {amenities.slice(0, 6).map((amenity) => (
-          <span key={amenity.id} className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600">
-            {amenity.name}
-          </span>
-        ))}
-      </div>
-    </div>
+    <Card variant="elevated" padding="lg">
+      <CardContent className="space-y-4">
+        <Badge variant="secondary">About</Badge>
+        <p className="text-muted-foreground leading-relaxed">{hostel.description}</p>
+
+        {amenities.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            {amenities.slice(0, 6).map((amenity) => (
+              <Badge key={amenity.id} variant="default">
+                {amenity.name}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
-
