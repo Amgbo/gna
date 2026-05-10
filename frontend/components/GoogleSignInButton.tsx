@@ -23,14 +23,14 @@ export default function GoogleSignInButton({ onSuccess, isLoading }: GoogleSignI
       try {
         const idToken = credentialResponse.credential;
         if (idToken) {
-          const parts = idToken.split('.');
+          const parts = idToken.split(".");
           if (parts.length >= 2) {
             const payload = JSON.parse(atob(parts[1]));
-            console.info('Google ID token claims (frontend):', payload);
+            console.info("Google ID token claims (frontend):", payload);
           }
         }
       } catch (decodeErr) {
-        console.warn('Failed to decode Google ID token on client:', decodeErr);
+        console.warn("Failed to decode Google ID token on client:", decodeErr);
       }
 
       const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
@@ -56,7 +56,7 @@ export default function GoogleSignInButton({ onSuccess, isLoading }: GoogleSignI
       } else {
         router.push("/");
       }
-    } catch (err) {
+    } catch {
       setError("Google sign-in failed");
     } finally {
       setLoading(false);
@@ -68,13 +68,13 @@ export default function GoogleSignInButton({ onSuccess, isLoading }: GoogleSignI
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
-      <div className="flex justify-center rounded-2xl border border-slate-200 bg-white p-3">
+      <div className="flex justify-center rounded-lg border border-border bg-card p-3">
         <GoogleLogin
           onSuccess={handleSuccess}
           onError={handleError}

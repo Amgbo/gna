@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, AlertCircle } from "lucide-react";
+import { Calendar, Clock, AlertCircle, CalendarCheck } from "lucide-react";
 import Link from "next/link";
-import LoadingSkeleton from "../../components/ui/LoadingSkeleton";
-import StatusBadge from "../../components/ui/StatusBadge";
+import { PageSkeleton } from "../../components/LoadingSkeleton";
+import EmptyState from "../../components/EmptyState";
+import { Card, CardContent } from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
+import { Button } from "../../components/ui/Button";
 import { useAuth } from "../../context/auth";
 
 interface Booking {
@@ -21,6 +24,32 @@ interface Booking {
   total_amount: number;
   currency: string;
   created_at: string;
+}
+
+function getBookingStatusVariant(status: string) {
+  switch (status.toLowerCase()) {
+    case "confirmed":
+      return "success";
+    case "pending":
+      return "warning";
+    case "cancelled":
+      return "destructive";
+    default:
+      return "default";
+  }
+}
+
+function getPaymentStatusVariant(status: string) {
+  switch (status.toLowerCase()) {
+    case "paid":
+      return "success";
+    case "pending":
+      return "warning";
+    case "failed":
+      return "destructive";
+    default:
+      return "default";
+  }
 }
 
 export default function BookingsPage() {
@@ -40,12 +69,10 @@ export default function BookingsPage() {
           return;
         }
 
-
         const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
         const res = await fetch(`${baseUrl}/api/bookings`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-
 
         if (!res.ok) {
           if (res.status === 401) {
@@ -70,87 +97,116 @@ export default function BookingsPage() {
   if (loading || isLoading) {
     return (
       <div className="mx-auto max-w-4xl">
-        <LoadingSkeleton lines={3} />
+        <PageSkeleton />
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-4xl">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-950 sm:text-4xl">My Bookings</h1>
-        <p className="mt-2 text-slate-600">Manage your hostel reservations</p>
+        <Badge variant="primary" className="mb-3">My Bookings</Badge>
+        <h1 className="font-display text-3xl font-bold text-foreground sm:text-4xl">
+          Your Reservations
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          View and manage your hostel bookings.
+        </p>
       </div>
 
+      {/* Error */}
       {error && (
-        <div className="mb-6 flex gap-3 rounded-xl bg-red-50 border border-red-200 p-4">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 mt-0.5" />
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
+        <Card padding="md" className="mb-6 border-destructive/20 bg-destructive/5">
+          <CardContent className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-destructive mt-0.5" />
+            <p className="text-sm text-destructive">{error}</p>
+          </CardContent>
+        </Card>
       )}
 
+      {/* Empty State */}
       {bookings.length === 0 ? (
-        <div className="soft-card rounded-[28px] p-8 text-center">
-          <p className="text-slate-600">No bookings yet.</p>
-          <Link
-            href="/"
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
-            Browse hostels
-          </Link>
-        </div>
+        <Card variant="elevated" padding="lg">
+          <EmptyState
+            icon={<CalendarCheck className="h-8 w-8" />}
+            title="No bookings yet"
+            description="You haven't made any reservations yet. Start browsing hostels to find your perfect accommodation."
+            action={{
+              label: "Browse Hostels",
+              onClick: () => router.push("/listings")
+            }}
+          />
+        </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {bookings.map((booking) => (
             <Link key={booking.id} href={`/bookings/${booking.id}`}>
-              <div className="soft-card rounded-[24px] p-5 transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(15,23,42,0.12)]">
-                <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-950">{booking.hostel_name}</h3>
-                      <p className="text-xs text-slate-600">Ref: {booking.booking_reference}</p>
+              <Card
+                variant="elevated"
+                padding="md"
+                className="transition-all duration-200 hover:-translate-y-0.5 hover:shadow-soft-xl cursor-pointer"
+              >
+                <CardContent>
+                  <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+                    <div className="space-y-3">
+                      {/* Hostel Name & Reference */}
+                      <div>
+                        <h3 className="font-display text-lg font-semibold text-foreground">
+                          {booking.hostel_name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Ref: {booking.booking_reference}
+                        </p>
+                      </div>
+
+                      {/* Dates & Semester */}
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span>
+                            {new Date(booking.check_in_date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric"
+                            })}{" "}
+                            -{" "}
+                            {new Date(booking.check_out_date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric"
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          <span>
+                            Semester {booking.semester}, Year {booking.academic_year}
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {new Date(booking.check_in_date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric"
-                          })}{" "}
-                          -{" "}
-                          {new Date(booking.check_out_date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric"
-                          })}
-                        </span>
+                    {/* Amount & Status */}
+                    <div className="flex flex-col items-end justify-center gap-3">
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-foreground">
+                          GHS {booking.total_amount.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Total Amount</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        <span>
-                          Semester {booking.semester}, Year {booking.academic_year}
-                        </span>
+
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Badge variant={getBookingStatusVariant(booking.booking_status) as "success" | "warning" | "destructive" | "default"}>
+                          {booking.booking_status}
+                        </Badge>
+                        <Badge variant={getPaymentStatusVariant(booking.payment_status) as "success" | "warning" | "destructive" | "default"}>
+                          {booking.payment_status}
+                        </Badge>
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex flex-col items-end justify-center gap-3">
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-slate-950">
-                        {booking.currency} {booking.total_amount.toLocaleString()}
-                      </p>
-                      <p className="text-xs text-slate-600">Total</p>
-                    </div>
-
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <StatusBadge status={booking.booking_status} kind="booking" />
-                      <StatusBadge status={booking.payment_status} kind="payment" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </Link>
           ))}
         </div>
@@ -158,4 +214,3 @@ export default function BookingsPage() {
     </div>
   );
 }
-
